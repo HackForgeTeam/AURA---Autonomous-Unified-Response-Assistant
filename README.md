@@ -1,11 +1,14 @@
 # AURA — Autonomous AI Personal Call Assistant
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-success?logo=vercel&logoColor=white&style=for-the-badge)](https://aura-phi-puce.vercel.app/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TypeScript-61DAFB?logo=react&logoColor=black)](https://reactjs.org)
 [![Vite](https://img.shields.io/badge/Build-Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![TailwindCSS](https://img.shields.io/badge/Styling-TailwindCSS%203-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Tests](https://img.shields.io/badge/Tests-10%2F10%20Passing-success)](https://pytest.org)
+[![Tests](https://img.shields.io/badge/Tests-11%2F11%20Passing-success)](https://pytest.org)
 [![Zero Cloud Lock-in](https://img.shields.io/badge/AI_Provider-Offline%20Deterministic%20%7C%20Pluggable-blueviolet)](https://github.com)
+
+> 🌐 **Live Production Link:** [AURA — AI Personal Call Assistant](https://aura-phi-puce.vercel.app/)
 
 **AURA** (Autonomous Unified Representative Agent) is a full-stack, real-time AI call assistant designed to represent users when they are unavailable, in deep focus, or unable to take phone or video calls.
 
@@ -154,6 +157,15 @@ AURA_11/
 ├── start_services.bat             # One-click full-stack launcher
 └── README.md
 ```
+
+---
+
+## 🌐 Live Production Application
+
+- **Live URL**: [AURA — AI Personal Call Assistant](https://aura-phi-puce.vercel.app/)
+- **Hosting Platform**: Vercel (Edge CDN)
+- **Status**: 🟢 Active & Deployed
+- **Repository**: [HackForgeTeam/AURA---Autonomous-Unified-Response-Assistant](https://github.com/HackForgeTeam/AURA---Autonomous-Unified-Response-Assistant)
 
 ---
 
