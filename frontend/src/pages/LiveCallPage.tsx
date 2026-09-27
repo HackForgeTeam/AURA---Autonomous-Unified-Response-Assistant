@@ -45,9 +45,11 @@ import {
 import { api } from '../services/api';
 import { useVoiceCall } from '../hooks/useVoiceCall';
 import { useAuraState } from '../context/AuraStateContext';
+import { queryResumeKnowledge } from '../services/resumeKnowledge';
 
 interface LiveCallPageProps {
   onClose: () => void;
+  onCallCompleted?: (callId?: number) => void;
 }
 
 interface TranscriptLine {
@@ -119,7 +121,7 @@ const WaveformBars: React.FC<{
 };
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export const LiveCallPage: React.FC<LiveCallPageProps> = ({ onClose }) => {
+export const LiveCallPage: React.FC<LiveCallPageProps> = ({ onClose, onCallCompleted }) => {
   const { setVisualState, setAudioLevel, addActivity } = useAuraState();
 
   // Call session state
@@ -200,11 +202,9 @@ export const LiveCallPage: React.FC<LiveCallPageProps> = ({ onClose }) => {
         ]);
         return reply;
       } catch (err: any) {
-        console.error('[LiveCall] Backend error:', err);
-        const msg = err?.message || 'Backend unavailable';
-        setBackendError(msg);
-        const fallback =
-          "I'm having trouble connecting right now. Please try again in a moment.";
+        console.warn('[LiveCall] Turn fallback:', err);
+        const grounded = queryResumeKnowledge(userText, { simulationType: 'Job Interview' });
+        const fallback = grounded.answer || "I’m here representing the candidate. How can I assist you with their qualifications or background?";
         setTranscript((prev) => [
           ...prev,
           { speaker: 'AURA', text: fallback, ts: Date.now() },
@@ -256,8 +256,9 @@ export const LiveCallPage: React.FC<LiveCallPageProps> = ({ onClose }) => {
     setTranscript([]);
     setPhase('starting');
 
+    let greeting = "";
     try {
-      // Create a backend call session so transcripts and AI context are persisted.
+      // Create a call session so transcripts and AI context are persisted.
       const res = await api.simulateCall({
         caller_name: 'Live Voice User',
         caller_number: '+1 (000) 000-0000',
@@ -270,28 +271,24 @@ export const LiveCallPage: React.FC<LiveCallPageProps> = ({ onClose }) => {
 
       setCallId(res.call_id);
       callIdRef.current = res.call_id;
-
-      // Add greeting to transcript before going active so it renders immediately
-      const greeting = res.greeting;
-      setTranscript([{ speaker: 'AURA', text: greeting, ts: Date.now() }]);
-
-      addActivity('Live voice call started — resume grounding active', 'INTERVIEW', 'LIVE');
-
-      // Transition to active BEFORE calling startCall so the active UI is
-      // visible while the mic permission dialog appears.
-      setPhase('active');
-
-      // startCall: awaits getUserMedia + AudioContext, speaks greeting, then listens.
-      // The call to startCall happens inside the click handler (user gesture context)
-      // which satisfies browser autoplay policy for both AudioContext and speechSynthesis.
-      await startCall(greeting);
+      greeting = res.greeting;
     } catch (err: any) {
-      console.error('[LiveCall] Start error:', err);
-      setPhase('idle');
-      setBackendError(
-        err?.message ||
-          'Could not start call. Make sure the backend is running on port 8000.'
-      );
+      console.warn('[LiveCall] Falling back to client session:', err?.message);
+      const fallbackId = Date.now();
+      setCallId(fallbackId);
+      callIdRef.current = fallbackId;
+      const candidateName = localStorage.getItem('aura_custom_resume')?.split('\n')?.[0]?.replace(/#/g, '')?.split('|')?.[0]?.trim() || 'the candidate';
+      greeting = `Hello, I'm AURA, an AI representative assisting on behalf of ${candidateName}. How can I help you regarding their qualifications, projects, or background today?`;
+    }
+
+    setTranscript([{ speaker: 'AURA', text: greeting, ts: Date.now() }]);
+    addActivity('Live voice call started — resume grounding active', 'INTERVIEW', 'LIVE');
+    setPhase('active');
+
+    try {
+      await startCall(greeting);
+    } catch (audioErr: any) {
+      console.error('[LiveCall] Microphone audio start warning:', audioErr);
     }
   }, [startCall, addActivity]);
 
@@ -310,9 +307,10 @@ export const LiveCallPage: React.FC<LiveCallPageProps> = ({ onClose }) => {
       } catch {
         // Finalization is best-effort; don't block the UI
       }
+      onCallCompleted?.(cid);
     }
     addActivity(`Live voice call ended — ${fmt(durationRef.current)} duration`, 'COMPLETED', 'CALL');
-  }, [endVoiceSession, setVisualState, setAudioLevel, addActivity]);
+  }, [endVoiceSession, setVisualState, setAudioLevel, addActivity, onCallCompleted]);
 
   // ── Text fallback submit
   const handleTextSubmit = (e: React.FormEvent) => {

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.entities import (
     Call, CallTranscript, CallClassification, CallSummary, ActionItem,
-    EmergencyEvent, Notification, ProfessionalProfile, Resume, User,
+    EmergencyEvent, Notification, ProfessionalProfile, Resume, User, DailyReport,
     SpeakerEnum, CallStatusEnum, CallCategoryEnum, UrgencyLevelEnum
 )
 from app.ai.base import ChatMessage, AIResponse
@@ -233,6 +233,59 @@ class CallSessionService:
                 priority=ai.get("priority", "Medium"),
                 is_completed=False
             ))
+
+        # Generate or update DailyReport for today
+        today_str = datetime.utcnow().strftime("%Y-%m-%d")
+        daily_rep = (
+            self.db.query(DailyReport)
+            .filter(DailyReport.user_id == call.user_id, DailyReport.report_date == today_str)
+            .first()
+        )
+        user_calls = (
+            self.db.query(Call)
+            .filter(Call.user_id == call.user_id, Call.status == CallStatusEnum.COMPLETED.value)
+            .all()
+        )
+        total_calls_cnt = len(user_calls)
+        breakdown = {}
+        high_pri_cnt = 0
+        for uc in user_calls:
+            cat = str(uc.category)
+            breakdown[cat] = breakdown.get(cat, 0) + 1
+            if uc.urgency in [UrgencyLevelEnum.URGENT.value, UrgencyLevelEnum.POTENTIAL_EMERGENCY.value, "IMPORTANT"]:
+                high_pri_cnt += 1
+
+        actions_cnt = self.db.query(ActionItem).join(Call).filter(Call.user_id == call.user_id).count()
+        new_hl = f"Completed {call.category} call with {call.caller_name}: {summary.overview[:100]}..."
+
+        if daily_rep:
+            daily_rep.total_calls = total_calls_cnt
+            daily_rep.category_breakdown = breakdown
+            daily_rep.high_priority_count = high_pri_cnt
+            daily_rep.action_items_count = actions_cnt
+            hl_list = list(daily_rep.highlights or [])
+            if new_hl not in hl_list:
+                hl_list.insert(0, new_hl)
+            daily_rep.highlights = hl_list[:10]
+            daily_rep.executive_summary = (
+                f"AURA concluded {total_calls_cnt} completed session(s) today. "
+                f"Latest session: {call.caller_name} ({call.category})."
+            )
+        else:
+            daily_rep = DailyReport(
+                user_id=call.user_id,
+                report_date=today_str,
+                total_calls=total_calls_cnt,
+                category_breakdown=breakdown,
+                high_priority_count=high_pri_cnt,
+                action_items_count=actions_cnt,
+                executive_summary=(
+                    f"AURA concluded {total_calls_cnt} completed session(s) today. "
+                    f"Latest session: {call.caller_name} ({call.category})."
+                ),
+                highlights=[new_hl]
+            )
+            self.db.add(daily_rep)
 
         self.db.commit()
         self.db.refresh(call)

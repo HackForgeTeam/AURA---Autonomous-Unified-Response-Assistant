@@ -343,7 +343,13 @@ const AuraMainApp: React.FC = () => {
     {/* ChatGPT-style Live Call overlay — rendered outside AppLayout so it
         covers the full screen. Closes by navigating back to the dashboard. */}
     {currentTab === 'livecall' && (
-      <LiveCallPage onClose={() => handleSelectTab('dashboard')} />
+      <LiveCallPage
+        onClose={() => {
+          loadData();
+          handleSelectTab('dashboard');
+        }}
+        onCallCompleted={handleCallCompleted}
+      />
     )}
     </>
   );

@@ -297,6 +297,19 @@ def save_user_resume(resume_in: ResumeSaveRequest, db: Session = Depends(get_db)
         if resume_in.pii_detected is not None:
             resume.pii_detected = resume_in.pii_detected
 
+    # Synchronize ProfessionalProfile with newly saved resume
+    prof_profile = db.query(ProfessionalProfile).filter(ProfessionalProfile.user_id == user.id).first()
+    if prof_profile and raw_text_value:
+        from app.ai.mock_provider import MockAIProvider
+        sections = MockAIProvider.parse_resume_sections(raw_text_value)
+        if sections.get("SUMMARY"):
+            prof_profile.summary = sections["SUMMARY"]
+        if sections.get("SKILLS"):
+            skills_extracted = [s.strip() for s in sections["SKILLS"].replace("\n", ",").split(",") if s.strip()]
+            if skills_extracted:
+                prof_profile.skills = skills_extracted
+        db.add(prof_profile)
+
     db.commit()
     db.refresh(resume)
     return resume
