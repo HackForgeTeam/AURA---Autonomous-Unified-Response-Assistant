@@ -19,16 +19,22 @@ import {
 
 const API_BASE = (import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '') + '/api/v1';
 
-// When running on a remote static host (e.g. Vercel) without a custom backend URL,
-// we should avoid sending POST/PUT requests to the static CDN because Vercel returns HTTP 405 Method Not Allowed.
+// When running on a remote static host (e.g. Vercel, GitHub Pages) without a custom backend URL,
+// we must avoid sending POST/PUT requests to the static CDN because static CDNs return HTTP 405 Method Not Allowed.
 const IS_REMOTE_STATIC_HOST =
   typeof window !== 'undefined' &&
-  (window.location.hostname.endsWith('vercel.app') || window.location.hostname.endsWith('github.io')) &&
-  !import.meta.env.VITE_API_URL;
+  (!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL.trim() === '') &&
+  (
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('github.io') ||
+    window.location.hostname.includes('netlify.app') ||
+    (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.includes('192.168.'))
+  );
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const isWriteMethod = options?.method === 'POST' || options?.method === 'PUT' || options?.method === 'PATCH' || options?.method === 'DELETE';
   // If hosted on Vercel without a backend, avoid POST/PUT to prevent 405
-  if (IS_REMOTE_STATIC_HOST && (options?.method === 'POST' || options?.method === 'PUT' || options?.method === 'PATCH' || endpoint.startsWith('/calls') || endpoint.startsWith('/reports'))) {
+  if (IS_REMOTE_STATIC_HOST && (isWriteMethod || endpoint.startsWith('/calls') || endpoint.startsWith('/reports'))) {
     throw new Error('STATIC_HOST_MODE');
   }
 
