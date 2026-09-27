@@ -1,0 +1,235 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────
+   LIGHT THEME — global root tokens
+   ───────────────────────────────────────────────────────────────── */
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+
+  /* Light palette tokens used by components */
+  --aura-bg:          #f0f4ff;   /* very light blue-white page bg        */
+  --aura-surface:     #ffffff;   /* card / panel surface                  */
+  --aura-border:      #e2e8f0;   /* neutral light border                  */
+  --aura-text:        #0f172a;   /* near-black primary text               */
+  --aura-muted:       #64748b;   /* slate-500 muted text                  */
+  --aura-cyan:        #0891b2;   /* cyan-600 — accent on light bg         */
+  --aura-violet:      #7c3aed;   /* violet-600                            */
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BODY / HTML baseline
+   ───────────────────────────────────────────────────────────────── */
+html, body {
+  background-color: var(--aura-bg);
+  color: var(--aura-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GLOBAL ANCHOR / LINK STYLING
+   On light backgrounds: use a readable dark-cyan.
+   On elements that have a dark background (e.g. the dark nav dock,
+   the LiveCallPage overlay) the component itself sets the text color
+   explicitly, so these rules are correct for the light surface context.
+   ───────────────────────────────────────────────────────────────── */
+a {
+  color: #0891b2; /* cyan-600 — readable on white/light backgrounds */
+  text-decoration-color: rgba(8, 145, 178, 0.35);
+}
+
+a:hover,
+a:focus-visible {
+  color: #0e7490; /* cyan-700 — slightly darker on hover */
+  text-decoration-color: rgba(14, 116, 144, 0.6);
+  outline: none;
+}
+
+a:focus-visible {
+  outline: 2px solid #0891b2;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FORCE LIGHT BACKGROUNDS on the core layout wrappers.
+   These override the hardcoded dark Tailwind classes used in
+   AppLayout.tsx and LiveCallPage.tsx without touching every component.
+   ───────────────────────────────────────────────────────────────── */
+
+/* AppLayout root div uses bg-[#03060B] — override to light */
+.aura-app-root {
+  background-color: var(--aura-bg) !important;
+  color: var(--aura-text) !important;
+}
+
+/* Tailwind arbitrary bg values that need to become light */
+[class*="bg-\[#03060"] {
+  background-color: var(--aura-bg) !important;
+}
+[class*="bg-\[#03060b\]"] {
+  background-color: var(--aura-bg) !important;
+}
+[class*="bg-\[#0a0d14\]"] {
+  background-color: var(--aura-bg) !important;
+}
+[class*="bg-\[#090e1d\]"] {
+  background-color: #f8faff !important;
+}
+[class*="bg-\[#0e1a2e\]"] {
+  background-color: #f1f5ff !important;
+}
+
+/* slate-950 / aura-bg used on cards → light surface */
+.bg-slate-950\/50,
+.bg-slate-950\/75,
+[class*="bg-slate-950"] {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   TEXT COLOUR OVERRIDES on light surfaces
+   ───────────────────────────────────────────────────────────────── */
+
+/* slate-100 / slate-200 text becomes very dark on light bg */
+.text-slate-100 { color: #0f172a !important; }
+.text-slate-200 { color: #1e293b !important; }
+.text-slate-300 { color: #334155 !important; }
+.text-slate-400 { color: #475569 !important; }
+
+/* white text that lives on light-surface cards → dark */
+/* Exception: inside explicitly dark containers (nav dock, live call overlay)
+   we do NOT want to override — those retain their own text-white classes.
+   The live call overlay already uses bg-[#03060b] which is being overridden
+   above, so its text colours will also need to carry through. We scope the
+   override only to surfaces that become light. */
+
+/* ─────────────────────────────────────────────────────────────────
+   BORDER overrides for light cards
+   ───────────────────────────────────────────────────────────────── */
+.border-white\/10 {
+  border-color: #e2e8f0 !important;
+}
+.border-white\/8 {
+  border-color: #e2e8f0 !important;
+}
+.border-white\/20 {
+  border-color: #cbd5e1 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SCROLLBAR — light variant
+   ───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f4ff;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0891b2;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GLASS PANEL UTILITIES — adapted for light theme
+   ───────────────────────────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(8, 145, 178, 0.15);
+}
+
+.glass-card-cosmic {
+  background: linear-gradient(135deg, rgba(240, 244, 255, 0.9) 0%, rgba(248, 250, 255, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(8, 145, 178, 0.18);
+  box-shadow: 0 4px 24px -4px rgba(8, 145, 178, 0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
+}
+
+.glow-cyan {
+  box-shadow: 0 0 24px -5px rgba(8, 145, 178, 0.35);
+}
+
+.glow-violet {
+  box-shadow: 0 0 24px -5px rgba(124, 58, 237, 0.35);
+}
+
+.glow-hud {
+  box-shadow: 0 0 32px -8px rgba(8, 145, 178, 0.28), 0 0 16px -5px rgba(124, 58, 237, 0.18);
+}
+
+.glow-pill-cta {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.35), 0 0 40px rgba(8, 145, 178, 0.18);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   INPUT FIELDS — light variant
+   ───────────────────────────────────────────────────────────────── */
+input, select, textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+input::placeholder {
+  color: #94a3b8;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ANIMATION KEYFRAMES (unchanged — used by animated UI elements)
+   ───────────────────────────────────────────────────────────────── */
+@keyframes eqBar {
+  0%, 100% { height: 4px;  opacity: 0.35; }
+  50%       { height: 24px; opacity: 1;    }
+}
+.animate-eq-1 { animation: eqBar 0.9s  ease-in-out infinite; }
+.animate-eq-2 { animation: eqBar 0.7s  ease-in-out infinite 0.15s; }
+.animate-eq-3 { animation: eqBar 1.1s  ease-in-out infinite 0.3s;  }
+.animate-eq-4 { animation: eqBar 0.6s  ease-in-out infinite 0.2s;  }
+.animate-eq-5 { animation: eqBar 0.85s ease-in-out infinite 0.4s;  }
+.animate-eq-6 { animation: eqBar 1.0s  ease-in-out infinite 0.25s; }
+
+@keyframes starShimmer {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 10px rgba(8, 145, 178, 0.8)) drop-shadow(0 0 25px rgba(124, 58, 237, 0.6));
+  }
+  50% {
+    transform: scale(1.12) rotate(4deg);
+    filter: drop-shadow(0 0 18px rgba(8, 145, 178, 1)) drop-shadow(0 0 40px rgba(236, 72, 153, 0.8));
+  }
+}
+.animate-star-sparkle { animation: starShimmer 3.5s ease-in-out infinite; }
+
+@keyframes ribbonFloat {
+  0%, 100% { transform: translateY(0px)  rotate(0deg);   }
+  50%       { transform: translateY(-8px) rotate(0.5deg); }
+}
+.animate-ribbon-float { animation: ribbonFloat 6s ease-in-out infinite; }
+
+@keyframes concentricPulse {
+  0%   { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.animate-concentric-pulse {
+  animation: concentricPulse 1.8s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+/* Custom cursor hide */
+@media (pointer: fine) {
+  html.aura-custom-cursor-active,
+  html.aura-custom-cursor-active * {
+    cursor: none !important;
+  }
+}
