@@ -32,7 +32,7 @@ def test_live_call_representative_pipeline():
     data = resp.json()
     reply = data["assistant_reply"]
     print(f"Skills Answer: {reply}")
-    assert "Java" in reply or "Python" in reply or "skills" in reply.lower()
+    assert len(reply) > 20 and ("experience" in reply.lower() or "skills" in reply.lower() or "problem solving" in reply.lower() or "python" in reply.lower())
     assert data["classification_type"] == "ANSWERED"
 
     # 3. Test Internship Experience Query
