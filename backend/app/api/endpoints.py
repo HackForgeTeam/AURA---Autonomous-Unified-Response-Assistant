@@ -300,14 +300,15 @@ def save_user_resume(resume_in: ResumeSaveRequest, db: Session = Depends(get_db)
     # Synchronize ProfessionalProfile with newly saved resume
     prof_profile = db.query(ProfessionalProfile).filter(ProfessionalProfile.user_id == user.id).first()
     if prof_profile and raw_text_value:
-        from app.ai.mock_provider import MockAIProvider
-        sections = MockAIProvider.parse_resume_sections(raw_text_value)
-        if sections.get("SUMMARY"):
-            prof_profile.summary = sections["SUMMARY"]
-        if sections.get("SKILLS"):
-            skills_extracted = [s.strip() for s in sections["SKILLS"].replace("\n", ",").split(",") if s.strip()]
-            if skills_extracted:
-                prof_profile.skills = skills_extracted
+        import re
+        lines = [l.strip() for l in raw_text_value.splitlines() if l.strip()]
+        for l in lines:
+            if "SKILLS" in l.upper():
+                parts = l.replace("SKILLS", "").replace(":", "").strip()
+                extracted = [s.strip() for s in re.split(r'[,•|/;\n]+', parts) if len(s.strip()) > 1]
+                if extracted:
+                    prof_profile.skills = extracted
+                    break
         db.add(prof_profile)
 
     db.commit()

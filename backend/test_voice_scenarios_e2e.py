@@ -94,7 +94,7 @@ def test_live_call_representative_pipeline():
     # 7. Test Uncertain Question
     resp = client.post(f"/api/v1/calls/{call_id}/interact", json={
         "call_id": call_id,
-        "caller_message": "How many years of Rust programming experience do they have?",
+        "caller_message": "How many years of Ruby programming experience do they have?",
         "simulation_type": "Job Interview",
         "first_person": False,
     })
